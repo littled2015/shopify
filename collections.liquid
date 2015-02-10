@@ -1,0 +1,130 @@
+<div id="collection">
+
+{% paginate collection.products by 25 %}
+
+  <div class="row">
+        <div class="span2">
+   {% include 'product_sidebar' %}
+    </div>
+
+    <div class="span10 products">
+          
+      <div class="row">
+
+        <!-- Begin breadcrumb -->
+        <div class="breadcrumb clearfix">
+          <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a href="{{ shop.url }}" title="{{ shop.name | escape }}" itemprop="url"><span itemprop="title">Home</span></a></span> 
+          <span class="arrow-space">&#62;</span>
+          <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a href="{{ collection.url }}" title="{{ collection.title | escape }}" itemprop="url"><span itemprop="title">{{ collection.title }}</span></a></span>       
+
+          {% if current_tags %}
+          {% for tag in current_tags %}
+          <span class="arrow-space">&#62;</span>
+          <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a href="/collections/{% if collection.handle != blank %}{{ collection.handle }}{% else %}all{% endif %}/{{ tag | handleize }}" title="{{ tag | escape }}" itemprop="url"><span itemprop="title">{{ tag }}</span></a></span>       
+          {% endfor %}
+          {% endif %}
+
+          {% if paginate.pages != 0 %}      
+          <span class="arrow-space">&#62;</span> <strong>Page {{ paginate.current_page }} of {{ paginate.pages }}</strong>
+          {% endif %}
+        </div>
+        <!-- End breadcrumb -->
+
+        <!-- Begin sort collection -->
+        <div class="clearfix">
+          <h1 class="collection-title">{{ collection.title }}</h1>
+          {% if settings.collection_tags %}
+          {% capture col_url%}{% if collection.url.size == 0 %}/collections/all{%else%}{{collection.url}}{%endif%}{%endcapture%}
+          {% if collection.all_tags.size > 0 %}
+          <div class="browse-tags">
+          <label>Browse:</label>
+          <select name="collection_tags" id="collection_tags" class="loc_on_change">
+          <option value="{{ col_url }}">All items</option>
+          {% for tag in collection.all_tags %}
+          <option value="{{col_url}}/{{ tag | handle }}"{% if current_tags contains tag %} selected="selected"{%endif%}>{{ tag }}</option>
+          {% endfor %}
+          </select>
+          </div>
+          {% endif %}
+          {% endif %}
+        </div>
+        <!-- End sort collection -->
+
+        <!-- Begin collection description -->
+        {% if collection.description != "" %}
+        {{ collection.description }}
+        {% endif %}
+        <!-- End collection description -->
+
+        <!-- Begin no products -->
+        {% if collection.products.size == 0 %}
+        <div class="row">
+          <div class="expanded-message">
+            <p>No products found</p>
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+
+      <div class="row">
+
+        {% for product in collection.products limit: settings.pagination_limit %}
+
+        {% capture collection_handle %}{{ collection.handle }}{% endcapture %}
+        {% capture url %}{% if collection_handle != "" %}/collections/{{ collection.handle }}{{ product.url }}{% else %}{{ product.url }}{% endif %}{% endcapture %}
+        <div class="product span2 {% cycle 'class-product-loop': 'inner-left', '', '', '', 'inner-right' %}">
+
+          {% if product.price_min < product.compare_at_price_min %}
+          {% if settings.show_sale_circle %}
+          <span class="circle sale">Sale</span>
+          {% endif %}
+          {% endif %}
+
+          <div class="image">
+            <a href="{{ url }}">
+              <img src="{{ product.featured_image | product_img_url: 'large' }}" alt="{{ product.title | escape  }}" />
+            </a>
+          </div>
+
+          <div class="details">
+            <a href="{{ url }}" class="clearfix">
+              <h4 class="title">{{ product.title }}</h4>       
+              {% if settings.product_vendor %}
+              <span class="vendor">{{ product.vendor }}</span>
+              {% endif %}
+              <span class="price">
+              {% if product.available %}
+              {% if product.compare_at_price_max > product.price %}
+              <del>{{ product.compare_at_price | money }}</del>
+              {% endif %}
+              {% if product.price_varies %}
+              <small><em>from</em></small>
+              {% endif %}
+              {{ product.price | money }}
+              {% else %}
+              {{ product.price | money }} Sold Out
+              {% endif %}
+              </span>
+            </a>        
+          </div>
+
+        </div>
+
+      {% cycle 'clear-product-loop': '', '', '', '', '<div style="clear:both;"></div>' %}
+
+      {% endfor %}     
+    
+      </div>
+        
+    </div><!-- .products -->
+
+
+    
+    {% include 'pagination' %}
+
+  </div><!-- .row -->
+
+{% endpaginate %}
+
+</div><!-- #collection -->
